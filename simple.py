@@ -62,17 +62,23 @@ def make_targetdir_string(prefix):
     tgt_dir = f'{prefix}{SEP}{sub_path}'
     return tgt_dir
         
-def create_asset_name(asset):
+def get_photo_format(uti_string):
+    format_prefix = 'public.'
+    return (uti_string.split(format_prefix,1)[1])
+    
+def create_asset_name(asset, buffer_uti):
     '''
         Given an iOS asset (picture/video/etc) create a filename using the
         asset metadata
     '''
+
     try:
         d = asset.creation_date
         date_taken = datetime_string(d)
         if len(asset.media_subtypes) != 0:
             date_taken += f'{SEP}{asset.media_subtypes[0]}'
-        date_taken += '.jpg'
+        suffix = get_photo_format(buffer_uti)    
+        date_taken += f'.{suffix}'
         return date_taken
     except Exception as e:
         print ('ERROR: rename_asset')
@@ -91,8 +97,8 @@ def copy_assets(ftp, media, tgt_dir):
     for a in all_assets:
         pool = ObjCClass('NSAutoreleasePool').new()
         try:
-            tgt_filename = create_asset_name(a)
             buffer = a.get_image_data(original = False)
+            tgt_filename = create_asset_name(a, buffer.uti)
             fullpath = os.path.join(tgt_dir, tgt_filename)
             ftp.storbinary("STOR "+fullpath, buffer)		            
             print('{0:4}: --> {1} - {2}'.format(i, tgt_dir, tgt_filename))
