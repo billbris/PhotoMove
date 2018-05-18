@@ -31,16 +31,18 @@ Settings = namedtuple('Settings', [
     'ftp_site',
     'ftp_port',
     'ftp_user',
+    'ftp_pass',
     'ftp_basedir',
     'filename_sep',
     'media_type'
     ])
     
 settings = Settings(
-    '10.0.0.64',
-    2021,
-    'Bill',
-    'ftp_simple',
+    'brisky.hopto.org',
+    21,
+    'ftp_access',
+    'Spartan86',
+    '/ftp_access/dropzone',
     '-',
     'image')
     
@@ -119,7 +121,7 @@ def make_ftp_targetdir(ftp, dirpath):
         print('MKD Success')
     except ftplib.all_errors as e:
         if '550' in e.args[0]:
-            print('MKD Success: Directory already exists')
+            print(f'MKD Success: Directory already exists - [{dirpath}]')
         else:
             print('MKD Error')
             print('Error: {e}')
@@ -134,7 +136,7 @@ def setup():
         sys.exit()
     else:
         try:
-            ret = ftp.login(user=settings.ftp_user)
+            ret = ftp.login(user=settings.ftp_user, passwd=settings.ftp_pass)
         except ftplib.all_errors as e:
             print (f'Error logging in to {settings.ftp_site}: {e}')
             sys.exit()
