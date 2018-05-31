@@ -6,6 +6,8 @@ import os
 import datetime
 from objc_utilX import *
 from collections import namedtuple
+import configparser
+from configparser import ConfigParser
 import console
 import timeit
 
@@ -26,9 +28,10 @@ import timeit
         - Average/file:    0.4227         
 
 '''
- 
+config_section = 'ftp_connection'
+
 Settings = namedtuple('Settings', [
-    'ftp_site',
+    'ftp_server',
     'ftp_port',
     'ftp_user',
     'ftp_pass',
@@ -125,20 +128,43 @@ def make_ftp_targetdir(ftp, dirpath):
         else:
             print('MKD Error')
             print('Error: {e}')
-                
+
+def load_config():
+    try:
+        parser = ConfigParser()
+        parser.read('config.ini')
+        section = parser[config_section]
+        global settings
+        settings = settings._replace(ftp_server    = section['ftp_server'])
+        settings = settings._replace(ftp_pass      = section['ftp_pass'])
+        settings = settings._replace(ftp_port      = int(section['ftp_port']))
+        settings = settings._replace(ftp_basedir   = section['ftp_basedir'])
+        settings = settings._replace(filename_sep  = section['filename_sep'])
+        settings = settings._replace(media_type    = section['media_type'])
+        global SEP
+        SEP = settings.filename_sep
+    except configparser.Error as e:
+        print(f'Error: loading configuration file')
+        print(f'\t{e}')
+        
 def setup():
+    print('In setup...')
+    load_config()
+
+def start_ftp_session():
+    print ('In start_ftp_session...')
     ftp = FTP()
     try:
-        ret = ftp.connect(host=settings.ftp_site, port=settings.ftp_port)
+        ret = ftp.connect(host=settings.ftp_server, port=settings.ftp_port)
         print (f'Connected: {ret}')
     except ftplib.all_errors as e:
-        print (f'Error connecting to {settings.ftp_site}: {e}')
+        print (f'Error connecting to {settings.ftp_server}: {e}')
         sys.exit()
     else:
         try:
             ret = ftp.login(user=settings.ftp_user, passwd=settings.ftp_pass)
         except ftplib.all_errors as e:
-            print (f'Error logging in to {settings.ftp_site}: {e}')
+            print (f'Error logging in to {settings.ftp_server}: {e}')
             sys.exit()
              
     if sys.platform == 'ios':
@@ -152,7 +178,7 @@ def setup():
                 
     console.set_idle_timer_disabled(True)    #Don't let device go to sleep
     
-    return ({'FTP':ftp, 'TargetDir':target_dir})
+    return ({'FTP':ftp, 'TargetDir':target_dir}) #return tuple 
     
 def teardown(ftp):
     ftp.quit()
@@ -160,37 +186,20 @@ def teardown(ftp):
     return
     
 def main():
-    '''
-    ftp_site = '10.0.0.64'
-    #ftp_site = 'dornoch'
-    ftp_port = 2021
-    username = 'Bill'
-    ftp = FTP()
-    try:
-        ret = ftp.connect(host=ftp_site, port=ftp_port)
-        print (f'Connected: {ret}')
-    except ftplib.all_errors as e:
-        print (f'Error connecting to {ftp_site}: {e}')
-        sys.exit()
-    else:
-        try:
-            ret = ftp.login(user='Bill')
-        except ftplib.all_errors as e:
-            print (f'Error logging in to {ftp_site}: {e}')
-            sys.exit()
+    setup()
     
-    prefix = 'ipad'
-    media = 'image'
-    tgt_dir = 'ftp_simple'
-    ''' 
+    results = start_ftp_session()
     
-    results = setup()
     
     t = timeit.Timer(lambda: copy_assets(results['FTP'], settings.media_type, results['TargetDir']))
     res = t.timeit(number=1)
     print ('Time: {} seconds'.format(res))
     
+    print(f'Settings: {settings}')
     teardown(results['FTP'])
+    print()
+    print('--------')
+    print('Finished')
     
 if __name__ == '__main__':
     main()
