@@ -51,7 +51,7 @@ settings = Settings(
     
 SEP = settings.filename_sep
 
-def datetime_string(d):
+def datetime_string(d): 
     '''
         returns a formatted string of the date passed in.
     '''
@@ -190,11 +190,11 @@ def main():
     
     results = start_ftp_session()
     
-    
+    '''
     t = timeit.Timer(lambda: copy_assets(results['FTP'], settings.media_type, results['TargetDir']))
     res = t.timeit(number=1)
     print ('Time: {} seconds'.format(res))
-    
+    '''
     print(f'Settings: {settings}')
     teardown(results['FTP'])
     print()
