@@ -41,7 +41,7 @@ Settings = namedtuple('Settings', [
     ])
     
 settings = Settings(
-    'brisky.hopto.org',
+    'brisky.serveftp.com',
     21,
     'ftp_access',
     'Spartan86',
@@ -55,7 +55,7 @@ def datetime_string(d):
     '''
         returns a formatted string of the date passed in.
     '''
-    dt_string = f'{d.year:04}{SEP}{d.month:02}{SEP}{d.day:02}{SEP}{d.minute:02}{SEP}{d.second:02}{SEP}{d.microsecond:06}'
+    dt_string = f'{d.year:04}{SEP}{d.month:02}{SEP}{d.day:02}{SEP}{d.hour:02}{SEP}{d.minute:02}{SEP}{d.second:02}{SEP}{d.microsecond:06}'
     return dt_string
  
 def make_targetdir_string(prefix):
